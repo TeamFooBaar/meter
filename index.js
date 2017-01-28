@@ -1,20 +1,19 @@
 const express = require("express")
 const request = require("request")
 const bodyParser = require("body-parser")
-const DroneNoOraclize = require('./DroneNoOraclize.sol.js')
+const Drone = require('./Drone.sol.js')
 
 const PORT = 3131
 const ETH_URL = "http://localhost:8545"
-const GROUND_CONTRACT_ADDRESS = ""
 
 const Web3 = require("web3")
 const web3 = new Web3(new Web3.providers.HttpProvider(ETH_URL))
 
-const METER_ADDRESS = web3.eth.accounts[1]
+const METER_ADDRESS = web3.eth.accounts[3]
 
-DroneNoOraclize.setProvider(web3.currentProvider)
+Drone.setProvider(web3.currentProvider)
 
-var d = DroneNoOraclize.deployed()
+var d = Drone.at("0xf5Fe6d14876Ee366420fFc6cb597dfbc5E2dd1D5")
 
 var requested = false;
 
@@ -25,7 +24,7 @@ function current(req, res) {
 	if (requested) {
 		return res.send("already")
 	}
-	switch (req.body.value < 2) {
+	switch (req.body.value < 1) {
 		case true:
 			{
 				return d.requestFlight(49, {from: METER_ADDRESS}).then(result => {
@@ -33,13 +32,14 @@ function current(req, res) {
 					requested = true;
 					return res.send("drone request sent")
 				}).catch(err => {
-					return res.send("damn..")
+					console.log(err)
+					return res.send("Error")
 				})
 				break;
 			}
 		default:
 			{
-				return res.send("all good man")
+				return res.send(":rocket:")
 			}
 	}
 }
@@ -49,10 +49,6 @@ app.post('/current', current)
 app.listen(PORT, () => {
 	console.log("Meter started!")
 })
-
-function requestDrone() {
-	return 
-}
 
 // send a new value every second
 setInterval(() => {
